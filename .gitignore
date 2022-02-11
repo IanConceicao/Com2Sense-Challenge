@@ -132,3 +132,6 @@ dmypy.json
 # Outputs
 runs
 outputs
+
+#Mac os
+*.DS_Store
