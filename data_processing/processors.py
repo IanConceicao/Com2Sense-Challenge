@@ -23,6 +23,8 @@ from torch.utils.data import DataLoader, SequentialSampler
 
 # Processors.
 from .dummy_data import DummyDataProcessor
+from .com2sense_data import Com2SenseDataProcessor
+from .semeval_data import SemEvalDataProcessor
 from transformers import (
     AutoTokenizer,
 )
@@ -130,19 +132,30 @@ class SemEvalDataset(Dataset):
         
     def __getitem__(self, idx):
 
-        ##################################################
-        # TODO: Please finish this function.
-        # Note that `token_type_ids` may not exist from
-        # the outputs of tokenizer for certain types of
-        # models (e.g. RoBERTa), please take special care
-        # of it with an if-else statement.
-        raise NotImplementedError("Please finish the TODO!")
-        # End of TODO.
-        ##################################################
-
+        example = self.examples[idx]
+        guid = example.guid
+        text = example.text
         label = example.label
+
+        batch_encoding = self.tokenizer(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_seq_length,
+            padding="max_length",
+            truncation=True,
+        )
+
+        input_ids = torch.Tensor(batch_encoding["input_ids"]).long()
+        attention_mask = torch.Tensor(batch_encoding["attention_mask"]).long()
+        if "token_type_ids" not in batch_encoding:
+            token_type_ids = torch.zeros_like(input_ids)
+        else:
+            token_type_ids = torch.Tensor(batch_encoding["token_type_ids"]).long()
+
         if label is not None:
             labels = torch.Tensor([label]).long()[0]
+        else:
+            labels = torch.Tensor([1]).long()[0] #TODO: Maybe disregard incomplete data earlier? 
 
         if not self.args.do_train:
             if label is None:
@@ -188,19 +201,30 @@ class Com2SenseDataset(Dataset):
         
     def __getitem__(self, idx):
 
-        ##################################################
-        # TODO: Please finish this function.
-        # Note that `token_type_ids` may not exist from
-        # the outputs of tokenizer for certain types of
-        # models (e.g. RoBERTa), please take special care
-        # of it with an if-else statement.
-        raise NotImplementedError("Please finish the TODO!")
-        # End of TODO.
-        ##################################################
-
+        example = self.examples[idx]
+        guid = example.guid
+        text = example.text
         label = example.label
+
+        batch_encoding = self.tokenizer(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_seq_length,
+            padding="max_length",
+            truncation=True,
+        )
+
+        input_ids = torch.Tensor(batch_encoding["input_ids"]).long()
+        attention_mask = torch.Tensor(batch_encoding["attention_mask"]).long()
+        if "token_type_ids" not in batch_encoding:
+            token_type_ids = torch.zeros_like(input_ids)
+        else:
+            token_type_ids = torch.Tensor(batch_encoding["token_type_ids"]).long()
+
         if label is not None:
             labels = torch.Tensor([label]).long()[0]
+        else:
+            labels = torch.Tensor([1]).long()[0] #TODO: Maybe disregard incomplete data earlier? 
 
         if not self.args.do_train:
             if label is None:
@@ -239,4 +263,39 @@ if __name__ == "__main__":
     pass
 
     # You can write your own unit-testing utilities here similar to above.
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+    processor = Com2SenseDataProcessor(data_dir="datasets/com2sense", args=args)
+    examples = processor.get_test_examples()
+
+    dataset = Com2SenseDataset(examples, tokenizer,
+                           max_seq_length=args.max_seq_length,
+                           args=args)
+    sampler = SequentialSampler(dataset)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=2)
+    epoch_iterator = tqdm(dataloader, desc="Iteration")
+
+    for step, batch in enumerate(epoch_iterator):
+        for each in batch:
+            print(each.size())
+        break
     pass
+
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+    processor = SemEvalDataProcessor(data_dir="datasets/semeval_2020_task4", args=args)
+    examples = processor.get_test_examples()
+
+    dataset = SemEvalDataset(examples, tokenizer,
+                           max_seq_length=args.max_seq_length,
+                           args=args)
+    sampler = SequentialSampler(dataset)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=2)
+    epoch_iterator = tqdm(dataloader, desc="Iteration")
+
+    for step, batch in enumerate(epoch_iterator):
+        for each in batch:
+            print(each.size())
+        break
+    pass
+

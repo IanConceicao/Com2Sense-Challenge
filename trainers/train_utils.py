@@ -50,12 +50,8 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
     #Don't mask special tokens, assign probability 0
     distribution.masked_fill_(special_tokens_mask, 0)
 
-    #Setup random generator for reproducibility 
-    gen = torch.Generator(device=args.device)
-    gen.manual_seed(args.seed)
-
     #Convert distribution to bernoulli, says which indices to mask
-    bern = torch.bernoulli(distribution, generator=gen).type(torch.BoolTensor)
+    bern = torch.bernoulli(distribution).type(torch.BoolTensor)
 
     #Fill in all NON-Masked spots
     labels.masked_fill_(~bern, args.mlm_ignore_index)
@@ -65,11 +61,11 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
     # <mask>, check tokenizer documentation for more details)
     
     to_replace_with = None
-    r = torch.rand(1, generator=gen)[0]
+    r = torch.rand(1)[0]
     if r <= 0.8:
         to_replace_with = tokenizer.mask_token_id
     elif r <= 0.9:
-        to_replace_with = torch.randint(50000,(1,), generator=gen)[0] #TODO replace 50,000 with actual vocab size
+        to_replace_with = torch.randint(50000,(1,))[0] #TODO replace 50,000 with actual vocab size
     
     if to_replace_with != None:
         for i in range(inputs.shape[0]):
