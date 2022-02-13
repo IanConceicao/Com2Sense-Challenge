@@ -303,7 +303,7 @@ def train(args, train_dataset, model, tokenizer):
                                 output_dir)
 
                     # Optional TODO: You can implement a save best functionality
-                    # to also save best thus far models to a specific output 
+                    # to also save best thus far models to a specific output
                     # directory such as `checkpoint-best`, the saved weights
                     # will be overwritten each time your model reaches a best
                     # thus far evaluation results on the dev set.
@@ -347,6 +347,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
     logger.info("  Batch size = %d", args.eval_batch_size)
 
     eval_loss = 0.0
+    eval_losses = []
     nb_eval_steps = 0
     preds = None
     labels = None
@@ -382,21 +383,23 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
             # TODO: Please finish the following eval loop.
             # Make sure to make a special if-statement for
             # args.training_phase is `pretrain`.
-            raise NotImplementedError("Please finish the TODO!")
 
             if args.training_phase == "pretrain":
                 # TODO: Mask the input tokens.
-                raise NotImplementedError("Please finish the TODO!")
+                mask_tokens(inputs, tokenizer, args)
 
             # TODO: See the HuggingFace transformers doc to properly get the loss
-            # AND the logits from the model outputs, it can simply be 
+            # AND the logits from the model outputs, it can simply be
             # indexing properly the outputs as tuples.
             # Make sure to perform a `.mean()` on the eval loss and add it
             # to the `eval_loss` variable.
-            raise NotImplementedError("Please finish the TODO!")
+
+            # Compute loss
+            logits = model(inputs["input_ids"], attention_mask=inputs["attention_mask"], labels=inputs["labels"])
+            eval_loss = logits[0].mean()
 
             # TODO: Handles the logits with Softmax properly.
-            raise NotImplementedError("Please finish the TODO!")
+            logits = nn.functional.softmax(logits, name=None)
 
             # End of TODO.
             ##################################################
@@ -442,16 +445,19 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
         # TODO: For `pretrain` phase, we only need to compute the
         # metric "perplexity", that is the exp of the eval_loss.
         if args.training_phase == "pretrain":
-            raise NotImplementedError("Please finish the TODO!")
+            eval_perplexity = 2**eval_loss
         # TODO: Please use the preds and labels to properly compute all
         # the following metrics: accuracy, precision, recall and F1-score.
         # Please also make your sci-kit learn scores able to take the
         # `args.score_average_method` for the `average` argument.
         else:
-            raise NotImplementedError("Please finish the TODO!")
+            eval_acc = accuracy_score(inputs["labels"], preds)
+            eval_prec = precision_score(inputs["labels"], preds, average=args.score_average_method)
+            eval_recall = recall_score(inputs["labels"], preds, average=args.score_average_method)
+            eval_f1 = f1_score(inputs["labels"], preds, average=args.score_average_method)
             # TODO: Pairwise accuracy.
             if args.task_name == "com2sense":
-                raise NotImplementedError("Please finish the TODO!")
+                eval_pairwise_acc = pairwise_accuracy(guids, preds, inputs["labels"])
 
         # End of TODO.
         ##################################################
@@ -526,14 +532,14 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False,
     if args.local_rank == 0 and not evaluate:
         # Make sure only the first process in distributed training process the
         # dataset, and the others will use the cache
-        torch.distributed.barrier() 
-    
+        torch.distributed.barrier()
+
     return dataset
 
 
 def main():
     torch.autograd.set_detect_anomaly(True)
-    
+
     args = get_args()
 
     # Writes the prefix to the output dir path.
@@ -601,7 +607,7 @@ def main():
     if args.local_rank not in [-1, 0]:
         # Make sure only the first process in distributed training will
         # download model & vocab.
-        torch.distributed.barrier() 
+        torch.distributed.barrier()
 
     # Getting the labels
     processor = data_processors[args.task_name]()
