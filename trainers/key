@@ -1,3 +1,0 @@
-batch[0] -> b_input_ids
-batch[1] -> b_attn_mask
-batch[2] -> b_labels
