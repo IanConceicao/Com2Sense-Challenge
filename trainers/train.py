@@ -377,7 +377,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
         with torch.no_grad():
             # Processes a batch.
             inputs = {"input_ids": batch[0], "attention_mask": batch[1]}
-            if (args.do_train and len(batch) > 3) or (not args.do_train and len(batch) > 4):
+            if (args.do_train and len(batch) > 4) or (not args.do_train and len(batch) > 4):
                 has_label = True
                 inputs["labels"] = batch[3]
 
