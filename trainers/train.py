@@ -232,8 +232,7 @@ def train(args, train_dataset, model, tokenizer):
             # the loss from the model outputs.
 
             outputs = model(**inputs)
-            loss = outputs[0] 
-
+            loss = outputs[0]
 
             if args.n_gpu > 1:
                 # Applies mean() to average on multi-gpu parallel training.
@@ -468,13 +467,9 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
             eval_recall = recall_score(labels, preds, average=args.score_average_method)
             eval_f1 = f1_score(labels, preds, average=args.score_average_method)
 
-            #eval_acc = accuracy_score(inputs["labels"], preds)
-            #eval_prec = precision_score(inputs["labels"], preds, average=args.score_average_method)
-            #eval_recall = recall_score(inputs["labels"], preds, average=args.score_average_method)
-            #eval_f1 = f1_score(inputs["labels"], preds, average=args.score_average_method)
             # TODO: Pairwise accuracy.
             if args.task_name == "com2sense":
-                eval_pairwise_acc = pairwise_accuracy(guids, preds, inputs["labels"])
+                eval_pairwise_acc = pairwise_accuracy(guids, preds, labels)
 
         # End of TODO.
         ##################################################
@@ -662,7 +657,7 @@ def main():
         model = AutoModelForSequenceClassification.from_pretrained(
             args.model_name_or_path,
             config=config)
-    
+
     ##################################################
 
     # Loads models onto the device (gpu or cpu).
