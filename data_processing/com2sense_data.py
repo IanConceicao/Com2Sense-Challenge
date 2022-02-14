@@ -75,7 +75,7 @@ class Com2SenseDataProcessor(DataProcessor):
             example_1 = Coms2SenseSingleSentenceExample(
                 guid=guid,
                 text=sent_1,
-                label=label_1,
+                label=1 if label_1 else 0,
                 domain = domain,
                 scenario = scenario,
                 numeracy = numeracy
@@ -84,7 +84,7 @@ class Com2SenseDataProcessor(DataProcessor):
             example_2 = Coms2SenseSingleSentenceExample(
                 guid=guid,
                 text=sent_2,
-                label=label_2,
+                label=1 if label_2 else 0,
                 domain = domain,
                 scenario = scenario,
                 numeracy = numeracy
