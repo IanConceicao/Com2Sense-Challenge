@@ -62,9 +62,9 @@ class Com2SenseDataProcessor(DataProcessor):
             if "sent_2" in datum:
                 sent_2 = datum["sent_2"]
             if "label_1" in datum:
-                label_1 = datum["label_1"]
+                label_1 = self.label2int[datum["label_1"]]
             if "label_2" in datum:    
-                label_2 = datum["label_2"]
+                label_2 = self.label2int[datum["label_2"]]
             if "domain" in datum:
                 domain = datum["domain"]
             if "scenario" in datum:
@@ -75,7 +75,7 @@ class Com2SenseDataProcessor(DataProcessor):
             example_1 = Coms2SenseSingleSentenceExample(
                 guid=guid,
                 text=sent_1,
-                label=1 if label_1 else 0,
+                label=label_1,
                 domain = domain,
                 scenario = scenario,
                 numeracy = numeracy
@@ -84,7 +84,7 @@ class Com2SenseDataProcessor(DataProcessor):
             example_2 = Coms2SenseSingleSentenceExample(
                 guid=guid,
                 text=sent_2,
-                label=1 if label_2 else 0,
+                label=label_2,
                 domain = domain,
                 scenario = scenario,
                 numeracy = numeracy
