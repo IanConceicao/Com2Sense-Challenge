@@ -405,11 +405,12 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
             # to the `eval_loss` variable.
 
             # Compute loss
-            logits = model(inputs["input_ids"], attention_mask=inputs["attention_mask"], labels=inputs["labels"])
-            eval_loss = logits[0].mean()
-
-            # TODO: Handles the logits with Softmax properly.
-            logits = logits[1]
+            if not has_label:
+                logits = model(inputs["input_ids"], attention_mask=inputs["attention_mask"])[0]
+            else:
+                logits = model(inputs["input_ids"], attention_mask=inputs["attention_mask"], labels=inputs["labels"])
+                eval_loss = logits[0].mean()
+                logits = logits[1]
             #logits[1] = torch.nn.functional.softmax(logits[1])
 
             # End of TODO.
