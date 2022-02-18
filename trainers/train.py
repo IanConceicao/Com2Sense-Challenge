@@ -396,7 +396,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
 
             if args.training_phase == "pretrain":
                 # TODO: Mask the input tokens.
-                mask_tokens(inputs, tokenizer, args)
+                inputs["input_ids"], inputs["labels"] = mask_tokens(inputs["input_ids"], tokenizer, args)
 
             # TODO: See the HuggingFace transformers doc to properly get the loss
             # AND the logits from the model outputs, it can simply be
