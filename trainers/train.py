@@ -222,11 +222,7 @@ def train(args, train_dataset, model, tokenizer):
 
             if args.training_phase == "pretrain":
                 # TODO: Mask the input tokens.
-                inputs["attention_mask"] = (torch.ones_like(
-                     inputs["attention_mask"])
-                     .to(args.device)
-                     .float()
-                     .masked_fill(inputs["attention_mask"] == 0, -1e9))
+                inputs["input_ids"], inputs["labels"] = mask_tokens(inputs["input_ids"], tokenizer, args)
 
             # TODO: See the HuggingFace transformers doc to properly get
             # the loss from the model outputs.
@@ -411,7 +407,9 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
                 logits = model(inputs["input_ids"], attention_mask=inputs["attention_mask"], labels=inputs["labels"])
                 eval_loss = logits[0].mean()
                 logits = logits[1]
-            #logits[1] = torch.nn.functional.softmax(logits[1])
+            
+            if args.training_phase != "pretrain":
+                logits = torch.nn.functional.softmax(logits, dim = -1)
 
             # End of TODO.
             ##################################################

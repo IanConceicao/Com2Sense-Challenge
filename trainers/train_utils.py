@@ -40,7 +40,7 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
             tokenizer.get_special_tokens_mask(val, already_has_special_tokens=True)
                 for val in labels.tolist()
         ]
-        special_tokens_mask = torch.tensor(special_tokens_mask, dtype=torch.bool)
+        special_tokens_mask = torch.tensor(special_tokens_mask, dtype=torch.bool, device=args.device)
     else:
         special_tokens_mask = special_tokens_mask.bool()
 
@@ -51,7 +51,7 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
     distribution.masked_fill_(special_tokens_mask, 0)
 
     #Convert distribution to bernoulli, says which indices to mask
-    bern = torch.bernoulli(distribution).type(torch.BoolTensor)
+    bern = torch.bernoulli(distribution).type(torch.BoolTensor).to(args.device)
 
     #Fill in all NON-Masked spots
     labels.masked_fill_(~bern, args.mlm_ignore_index)

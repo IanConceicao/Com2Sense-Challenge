@@ -12,7 +12,7 @@ python3 -m trainers.train \
   --per_gpu_train_batch_size 4 \
   --per_gpu_eval_batch_size 1 \
   --learning_rate 1e-5 \
-  --num_train_epochs 100.0 \
+  --num_train_epochs 20.0 \
   --max_seq_length 128 \
   --output_dir "pretrain/ckpts" \
   --task_name "${TASK_NAME}" \
@@ -24,7 +24,7 @@ python3 -m trainers.train \
   --warmup_steps 100 \
   --eval_split "dev" \
   --score_average_method "micro" \
-  --iters_to_eval 20 40 \
+  --iters_to_eval 20 \
   --overwrite_output_dir \
   --training_phase "pretrain" \
   --seed 42 \
