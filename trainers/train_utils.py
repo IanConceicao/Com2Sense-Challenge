@@ -65,7 +65,7 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
     if r <= 0.8:
         to_replace_with = tokenizer.mask_token_id
     elif r <= 0.9:
-        to_replace_with = torch.randint(50000,(1,))[0] #TODO replace 50,000 with actual vocab size
+        to_replace_with = torch.randint(28996,(1,))[0] #TODO replace 50,000 with actual vocab size
     
     if to_replace_with != None:
         for i in range(inputs.shape[0]):
