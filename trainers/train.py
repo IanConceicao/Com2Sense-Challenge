@@ -408,8 +408,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
                 eval_loss = logits[0].mean()
                 logits = logits[1]
             
-            if args.training_phase != "pretrain":
-                logits = torch.nn.functional.softmax(logits, dim = -1)
+            logits = torch.nn.functional.softmax(logits, dim = -1)
 
             # End of TODO.
             ##################################################
