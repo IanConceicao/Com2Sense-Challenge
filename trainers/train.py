@@ -159,6 +159,7 @@ def train(args, train_dataset, model, tokenizer):
     global_step = 0
     epochs_trained = 0
     steps_trained_in_current_epoch = 0
+    best_results = None
 
     # Check if continuing training from a checkpoint
     if (os.path.exists(args.model_name_or_path)
@@ -262,6 +263,54 @@ def train(args, train_dataset, model, tokenizer):
                 scheduler.step()  # Update learning rate schedule
                 model.zero_grad()
                 global_step += 1
+
+                if (args.local_rank in [-1, 0] and args.best_model_steps > 0
+                    and args.best_model_warmup_percent > (global_step / t_total)
+                    and global_step % args.best_model_steps == 0):
+                    # Best Model Check
+                    if (
+                        # Only evaluate when single GPU otherwise metrics may
+                        # not average well
+                        args.local_rank == -1
+                    ):
+                        results = evaluate(args, model, tokenizer,
+                                           data_split=args.eval_split)
+                        current_acc = results.get("{}_accuracy".format(args.task_name))
+                        best_acc = best_results.get("{}_accuracy".format(args.task_name))
+
+                        if best_acc == None or current_acc > best_acc:
+                            best_results = results
+                            # Save new best model
+                            output_dir = os.path.join(args.output_dir,
+                                "checkpoint-best")
+                            if not os.path.exists(output_dir):
+                                os.makedirs(output_dir)
+                            model_to_save = (
+                                model.module if hasattr(model, "module") else model
+                            )  # Take care of distributed/parallel training
+                            model_to_save.save_pretrained(output_dir)
+                            tokenizer.save_pretrained(output_dir)
+
+                            torch.save(args, os.path.join(output_dir,
+                                    "training_args.bin"))
+                            logger.info("Saving new best model to %s", output_dir)
+
+                            torch.save(optimizer.state_dict(), os.path.join(
+                                output_dir, "optimizer.pt"))
+                            torch.save(scheduler.state_dict(), os.path.join(
+                                output_dir, "scheduler.pt"))
+                            logger.info("Saving optimizer and scheduler states to %s",
+                                        output_dir)
+
+                            output_eval_file = os.path.join(output_dir, "eval_results_split_{}.txt".format(args.eval_split))
+
+                            with open(output_eval_file, "w") as writer:
+                                logger.info("***** Eval results checkpoint-best on split: {} *****".format(args.eval_split))
+                                for key in sorted(best_results.keys()):
+                                    logger.info("  %s = %s", key, str(best_results[key]))
+                                    writer.write("%s = %s\n" % (key, str(best_results[key])))
+
+
 
                 if (args.local_rank in [-1, 0] and args.logging_steps > 0
                     and global_step % args.logging_steps == 0):
@@ -438,7 +487,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
         # Computes overall average eavl loss.
         eval_loss = eval_loss / nb_eval_steps
 
-        eval_loss_dict = {"{}_loss".format(args.task_name): eval_loss}
+        eval_loss_dict = {"{}_loss".format(args.task_name): eval_loss.item()}
         results.update(eval_loss_dict)
 
         eval_perplexity = 0

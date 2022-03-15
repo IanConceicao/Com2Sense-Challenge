@@ -8,7 +8,6 @@ python3 -m trainers.train \
   --do_not_load_optimizer \
   --do_train \
   --do_eval \
-  --evaluate_during_training \
   --per_gpu_train_batch_size 4 \
   --per_gpu_eval_batch_size 1 \
   --learning_rate 1e-5 \
@@ -18,11 +17,14 @@ python3 -m trainers.train \
   --task_name "${TASK_NAME}" \
   --data_dir "${DATA_DIR}" \
   --overwrite_output_dir \
-  --save_steps 20 \
-  --logging_steps 5 \
+  --save_steps 25 \
   --warmup_steps 100 \
   --eval_split "dev" \
   --score_average_method "binary" \
-  --iters_to_eval 20 40 60 80 100\
+  --iters_to_eval 25 50 75 100 \
   --overwrite_output_dir \
+  --best_model_warmup_percent 0.75
+  --best_model_steps 2
+  # --logging_steps 5 \
+  # --evaluate_during_training \
   # --max_eval_steps 1000 \

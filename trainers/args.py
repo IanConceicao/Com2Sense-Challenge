@@ -216,6 +216,17 @@ def get_args():
         "--no_gene", action="store_true", 
         help="Set this flag if not using the gene and variation information."
     )
+
+    parser.add_argument(
+        "--best_model_warmup_percent", default=0.0, type=float,
+                        help="Percentage of the total steps that we undergo before we to evaluate for the best model.\
+                             --best_model_steps must be set as well"
+    )
+    parser.add_argument(
+        "--best_model_steps", default=0, type=int,
+                        help="How frequently to check our model and see if it is the best.\
+                             Must have --best_model_warmup_percent set."
+    )
     args = parser.parse_args()
 
     return args
