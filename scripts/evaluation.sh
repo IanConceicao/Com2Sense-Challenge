@@ -7,7 +7,7 @@ python3 -m trainers.train \
   --model_name_or_path ${MODEL_TYPE} \
   --do_train \
   --do_eval \
-  --logging_steps 50 \
+  --logging_steps 200 \
   --per_gpu_eval_batch_size 4 \
   --max_seq_length 128 \
   --output_dir "${TASK_NAME}/ckpts" \
@@ -20,8 +20,8 @@ python3 -m trainers.train \
   --score_average_method "micro" \
   --iters_to_eval 15000 30000 \
   --overwrite_output_dir \
-  --best_model_warmup_percent 0.70 \
-  --best_model_steps 50 \
+  --best_model_warmup_percent 0.80 \
+  --best_model_steps 400 \
 
   #TODO: Put the correct params  before all of these comments:
   # --per_gpu_train_batch_size <8 or 16> \
