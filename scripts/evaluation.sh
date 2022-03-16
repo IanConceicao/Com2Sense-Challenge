@@ -29,7 +29,7 @@ python3 -m trainers.train \
   # --learning_rate  <0.00001 or 0.000001> \
   # --num_train_epochs <150 if batch size is 8, 300 if batch size is 16>
 
-  # Immediately after running make sure Total optimization steps = 45000
+  # Immediately after running make sure Total optimization steps = 30000
  
   # After it finishes save the com2sense/ckpts/ make sure there is checkpoint-15000 checkpoint-30000 and checkpoint-best
   #    All should have an eval_results_split_dev.txt in there with their performance
