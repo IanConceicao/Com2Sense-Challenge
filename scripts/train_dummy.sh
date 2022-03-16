@@ -23,7 +23,7 @@ python3 -m trainers.train \
   --score_average_method "binary" \
   --iters_to_eval 25 50 75 100 \
   --overwrite_output_dir \
-  --best_model_warmup_percent 0.75
+  --best_model_warmup_percent 0.01 \
   --best_model_steps 2
   # --logging_steps 5 \
   # --evaluate_during_training \

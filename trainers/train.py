@@ -263,9 +263,9 @@ def train(args, train_dataset, model, tokenizer):
                 scheduler.step()  # Update learning rate schedule
                 model.zero_grad()
                 global_step += 1
-
+                
                 if (args.local_rank in [-1, 0] and args.best_model_steps > 0
-                    and args.best_model_warmup_percent > (global_step / t_total)
+                    and (global_step / t_total) >= args.best_model_warmup_percent
                     and global_step % args.best_model_steps == 0):
                     # Best Model Check
                     if (
@@ -274,11 +274,17 @@ def train(args, train_dataset, model, tokenizer):
                         args.local_rank == -1
                     ):
                         results = evaluate(args, model, tokenizer,
-                                           data_split=args.eval_split)
+                                           data_split=args.eval_split, silent=True)
                         current_acc = results.get("{}_accuracy".format(args.task_name))
-                        best_acc = best_results.get("{}_accuracy".format(args.task_name))
-
-                        if best_acc == None or current_acc > best_acc:
+                        current_loss = results.get("{}_loss".format(args.task_name))
+                        
+                        if best_results != None:
+                            best_acc = best_results.get("{}_accuracy".format(args.task_name))
+                            best_loss = best_results.get("{}_loss".format(args.task_name))
+                        
+                        #Update if accuracy is better. If accuracy is tied update if loss is bette
+                        if best_results == None or current_acc > best_acc or \
+                        (current_acc == best_acc and current_loss < best_loss):
                             best_results = results
                             # Save new best model
                             output_dir = os.path.join(args.output_dir,
@@ -376,7 +382,7 @@ def train(args, train_dataset, model, tokenizer):
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, model, tokenizer, prefix="", data_split="test"):
+def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
 
     # Main evaluation loop.
     results = {}
@@ -520,7 +526,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
 
         # End of TODO.
         ##################################################
-
+    
         if args.training_phase == "pretrain":
             eval_acc_dict = {"{}_perplexity".format(args.task_name): eval_perplexity}
         else:
@@ -537,7 +543,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
         output_eval_file = os.path.join(args.output_dir,
             prefix, "eval_results_split_{}.txt".format(data_split))
 
-    if has_label:
+    if has_label and not silent:
         with open(output_eval_file, "w") as writer:
             logger.info("***** Eval results {} on split: {} *****".format(prefix, data_split))
             for key in sorted(results.keys()):
@@ -545,7 +551,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test"):
                 writer.write("%s = %s\n" % (key, str(results[key])))
 
     # Stores the prediction .txt file to the `args.output_dir`.
-    if not has_label:
+    if not has_label and not silent:
         pred_file = os.path.join(args.output_dir, "com2sense_predictions.txt")
         pred_fo = open(pred_file, "w")
         for pred in preds:
