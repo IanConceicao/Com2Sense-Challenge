@@ -18,9 +18,8 @@ python3 -m trainers.train \
   --warmup_steps 100 \
   --eval_split "dev" \
   --score_average_method "micro" \
-  --iters_to_eval 10000 30000 45000\
+  --iters_to_eval 15000 30000 \
   --overwrite_output_dir \
-  --eval_split "dev" \
   --best_model_warmup_percent 0.70 \
   --best_model_steps 50 \
 
@@ -28,11 +27,17 @@ python3 -m trainers.train \
   # --per_gpu_train_batch_size <8 or 16> \
   # --weight_decay <0.1 or 0.01> \
   # --learning_rate  <0.00001 or 0.000001> \
-  # --num_train_epochs <225 if batch size is 8, 450 if batch size is 16>
+  # --num_train_epochs <150 if batch size is 8, 300 if batch size is 16>
 
   # Immediately after running make sure Total optimization steps = 45000
  
-  # After it finishes save the com2sense/ckpts/ make sure there is checkpoint-15000 checkpoint-30000  checkpoint-45000 and checkpoint-best
+  # After it finishes save the com2sense/ckpts/ make sure there is checkpoint-15000 checkpoint-30000 and checkpoint-best
   #    All should have an eval_results_split_dev.txt in there with their performance
   # Save the tensorboard run in /runs/<time-ran...> (should be the bottom-most one)
+  # save locally to a folder like this:
+  # trial-ID (see spreadsheet)
+  #     checkpoint-15000
+  #     checkpoint-30000
+  #     checkpoint-best
+  #     run (tensorboard run folder)
 
