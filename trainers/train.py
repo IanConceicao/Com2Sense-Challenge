@@ -274,7 +274,6 @@ def train(args, train_dataset, model, tokenizer):
                         # not average well
                         args.local_rank == -1
                     ):
-                        evaluated_already = True
                         results = evaluate(args, model, tokenizer,
                                            data_split=args.eval_split, silent=True)
                         current_acc = results.get("{}_accuracy".format(args.task_name))
