@@ -264,6 +264,7 @@ def train(args, train_dataset, model, tokenizer):
                 model.zero_grad()
                 global_step += 1
                 
+                results = None
                 if (args.local_rank in [-1, 0] and args.best_model_steps > 0
                     and (global_step / t_total) >= args.best_model_warmup_percent
                     and global_step % args.best_model_steps == 0):
@@ -273,6 +274,7 @@ def train(args, train_dataset, model, tokenizer):
                         # not average well
                         args.local_rank == -1
                     ):
+                        evaluated_already = True
                         results = evaluate(args, model, tokenizer,
                                            data_split=args.eval_split, silent=True)
                         current_acc = results.get("{}_accuracy".format(args.task_name))
@@ -317,7 +319,6 @@ def train(args, train_dataset, model, tokenizer):
                                     writer.write("%s = %s\n" % (key, str(best_results[key])))
 
 
-
                 if (args.local_rank in [-1, 0] and args.logging_steps > 0
                     and global_step % args.logging_steps == 0):
                     # Log metrics
@@ -326,8 +327,9 @@ def train(args, train_dataset, model, tokenizer):
                         # not average well
                         args.local_rank == -1 and args.evaluate_during_training
                     ):
-                        results = evaluate(args, model, tokenizer,
-                                           data_split=args.eval_split)
+                        if results == None: #Avoid double-evaluating
+                            results = evaluate(args, model, tokenizer,
+                                            data_split=args.eval_split)
                         for key, value in results.items():
                             tb_writer.add_scalar(
                                 "eval_on_{}_{}".format(args.eval_split, key),
@@ -528,7 +530,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
         ##################################################
     
         if args.training_phase == "pretrain":
-            eval_acc_dict = {"{}_perplexity".format(args.task_name): eval_perplexity}
+            eval_acc_dict = {"{}_perplexity".format(args.task_name): eval_perplexity.item()}
         else:
             eval_acc_dict = {"{}_accuracy".format(args.task_name): eval_acc}
             eval_acc_dict["{}_precision".format(args.task_name)] = eval_prec
