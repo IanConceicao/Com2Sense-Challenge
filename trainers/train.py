@@ -556,7 +556,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
                 eval_acc_dict["{}_pairwise_accuracy".format(args.task_name)] = eval_pairwise_acc
                 
                 #Domain accuracy
-                domain_int_to_str = {0:"physical", 1: "time", 2: "temporal"}
+                domain_int_to_str = {0:"physical", 1: "time", 2: "social"}
                 for domain in np.unique(domains):
                     eval_acc_dict["{}_domain_accuracy".format(domain_int_to_str[domain])] = accuracy_of_domain(preds, labels, domains, domain)
 

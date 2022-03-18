@@ -70,7 +70,7 @@ class Com2SenseDataProcessor(DataProcessor):
                     domain = 0
                 elif datum["domain"] == "time":
                     domain = 1
-                else: #temporal
+                else: #social
                     domain = 2
             if "scenario" in datum:
                 scenario = datum["scenario"]
