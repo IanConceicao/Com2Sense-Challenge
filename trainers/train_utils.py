@@ -9,6 +9,8 @@ import os
 from enum import Enum
 from typing import List, Optional, Union
 
+from sklearn.metrics import accuracy_score
+
 import tqdm
 import numpy as np
 
@@ -82,6 +84,25 @@ def mask_tokens(inputs, tokenizer, args, special_tokens_mask=None):
     # tokens unchanged
 
     return inputs, labels
+
+#They are all numpy arrays
+#Given a specific domain, evaluate the accuracy of tasks with that domain
+def accuracy_of_domain(preds, labels, domains, domain_to_keep):
+
+    if preds.shape != labels.shape or preds.shape != domains.shape:
+        raise Error("Must all have the same type!")
+
+    indices_to_keep = np.where(domains == domain_to_keep)[0]
+    preds = preds.take(indices_to_keep)
+    labels = labels.take(indices_to_keep)
+
+    print("Looking at domain", domain_to_keep)
+    print("indices to keep shape", indices_to_keep.shape)
+    print("preds shape", preds.shape)
+    print("labels shape",  labels.shape)
+    print()
+
+    return accuracy_score(labels, preds)
 
 
 def pairwise_accuracy(guids, preds, labels):

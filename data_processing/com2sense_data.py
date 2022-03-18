@@ -66,7 +66,12 @@ class Com2SenseDataProcessor(DataProcessor):
             if "label_2" in datum:    
                 label_2 = self.label2int[datum["label_2"]]
             if "domain" in datum:
-                domain = datum["domain"]
+                if datum["domain"] == "physical":
+                    domain = 0
+                elif datum["domain"] == "time":
+                    domain = 1
+                else: #temporal
+                    domain = 2
             if "scenario" in datum:
                 scenario = datum["scenario"]
             if "numeracy" in datum:

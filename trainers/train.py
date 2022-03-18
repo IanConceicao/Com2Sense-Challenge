@@ -47,6 +47,7 @@ from .args import get_args
 from data_processing import data_processors, data_classes
 from .train_utils import mask_tokens
 from .train_utils import pairwise_accuracy
+from .train_utils import accuracy_of_domain
 
 # Tensorboard utilities.
 try:
@@ -413,6 +414,7 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
     nb_eval_steps = 0
     preds = None
     labels = None
+    domains = None
     has_label = False
 
     guids = []
@@ -423,7 +425,10 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
         batch = tuple(t.to(args.device) for t in batch)
 
         if not args.do_train or (args.do_train and args.eval_split != "test"):
-            guid = batch[-1].cpu().numpy()[0]
+            if args.task_name == "com2sense":
+                guid = batch[-2].cpu().numpy()[0]
+            else:
+                guid = batch[-1].cpu().numpy()[0]
             guids.append(guid)
 
         with torch.no_grad():
@@ -432,6 +437,9 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
             if (args.do_train and len(batch) > 3) or (not args.do_train and len(batch) > 4):
                 has_label = True
                 inputs["labels"] = batch[3]
+
+            if args.task_name == "com2sense":
+                inputs.update({"domains" : batch[5]})
 
             # Clears token type ids if using MLM-based models.
             if args.model_type != "distilbert":
@@ -480,6 +488,14 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
             if has_label:
                 labels = np.append(labels,
                     inputs["labels"].detach().cpu().numpy(), axis=0)
+
+        if args.task_name == "com2sense":
+            if domains is None:
+                domains = inputs["domains"].detach().cpu().numpy()
+            else:
+                domains = np.append(domains,
+                    inputs["domains"].detach().cpu().numpy(), axis=0)
+            
 
         if args.max_eval_steps > 0 and nb_eval_steps >= args.max_eval_steps:
             logging.info("Early stopping"
@@ -538,6 +554,11 @@ def evaluate(args, model, tokenizer, prefix="", data_split="test",silent=False):
             # Pairwise accuracy.
             if args.task_name == "com2sense":
                 eval_acc_dict["{}_pairwise_accuracy".format(args.task_name)] = eval_pairwise_acc
+                
+                #Domain accuracy
+                domain_int_to_str = {0:"physical", 1: "time", 2: "temporal"}
+                for domain in np.unique(domains):
+                    eval_acc_dict["{}_domain_accuracy".format(domain_int_to_str[domain])] = accuracy_of_domain(preds, labels, domains, domain)
 
         results.update(eval_acc_dict)
 
